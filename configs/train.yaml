@@ -31,7 +31,7 @@ dhn_eval_mode: terminal
 dhn_supervised_weight: 1.25
 dhn_action_loss_weight: 0.05
 
-# CS: continuous-scale branch for open-loop prediction
+# CS: continuous-scale auxiliary branch used during joint training
 # Sigma is always random log-uniform sampling in [cs_sigma_min, cs_sigma_max]
 cs_num_scales: 50
 cs_sigma_min: 0.01
