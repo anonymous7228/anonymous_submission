@@ -1,11 +1,10 @@
-
+# UniDBO
 
 This repository contains the UniDBO codebase for:
 
 - Data conversion
 - Joint training of DHN and CS branches
-- Validation and open-loop prediction (CS branch)
-- Waymax closed-loop simulation (DHN branch)
+- Waymax closed-loop evaluation with the DHN branch
 
 ## Build Environment
 
@@ -22,7 +21,7 @@ Download Waymo Open Motion Dataset (WOMD) tf_example files:
 
 - https://waymo.com/open/data/motion/
 
- Please use version V1.2 tf_example data to work with Waymax.
+Please use version V1.2 tf_example data to work with Waymax.
 
 ## Data Preparation
 
@@ -42,7 +41,7 @@ python tools/prepare_data.py \
 
 `--save_raw` stores scenario raw bytes for downstream Waymax closed-loop evaluation.
 
-## Training 
+## Training
 
 ```bash
 python train_unidbo.py \
@@ -56,27 +55,13 @@ python train_unidbo.py \
 
 Training logs and checkpoints are written to `results/train_logs/`.
 
-## Testing
+## Closed-Loop Evaluation
 
 Set checkpoint path from your training output:
 
 ```bash
 CKPT=results/train_logs/<RUN_DIR>/checkpoints/best-epoch=XX.ckpt
 ```
-
-### Open-Loop Prediction (CS branch, val1 protocol)
-
-```bash
-python eval_open_loop.py \
-    --config configs/open_loop.yaml \
-    --model_path ${CKPT} \
-    --val_data_path data/val \
-    --output_dir results/open_loop_eval
-```
-
-This command uses the same validation path as training with CS-only evaluation and reports ADE/FDE in `results/open_loop_eval/open_loop_metrics.csv`.
-
-### Waymax Closed-Loop Simulation (DHN branch)
 
 ```bash
 python test_unidbo.py \
@@ -94,7 +79,4 @@ This command runs closed-loop rollout and writes Waymax metrics to CSV files und
 
 The folder `examples/sample/` contains 8 visualization examples for quick inspection.
 
-- `*.mp4`: rendered closed-loop videos (recommended for anonymous repository demos).
-- `*_sim.pkl`: optional simulation states for programmatic replay/analysis.
-
-For anonymous review, keeping `mp4` files is sufficient. Keep `pkl` files only if you want to support additional reproducibility analysis beyond video inspection.
+- `*.mp4`: rendered closed-loop rollout videos.
