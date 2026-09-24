@@ -14,7 +14,7 @@ class UniDBOModel(pl.LightningModule):
     """
     UniDBO: shared scene encoder with two one-step denoising branches.
 
-    - CS: continuous-scale branch for open-loop prediction.
+    - CS: continuous-scale auxiliary branch used during joint training.
     - DHN: discrete high-noise branch for closed-loop simulation.
     """
 
@@ -471,28 +471,6 @@ class UniDBOModel(pl.LightningModule):
         loss, log_dict = self.forward_and_get_loss(batch, prefix="val/")
         self.log_dict(log_dict, on_step=False, on_epoch=True, sync_dist=True, prog_bar=True)
         return loss
-
-    @torch.no_grad()
-    def sample_open_loop(self, batch, sigma: float = -1.0):
-        batch = self.batch_to_device(batch, self.device)
-        encoder_outputs = self.encoder(batch)
-        agents_history = encoder_outputs["agents"]
-        batch_size, num_agents = agents_history.shape[:2]
-        num_steps = self._future_len // self._action_len
-        if sigma <= 0:
-            sigma_full = self._sample_cs_sigma(
-                batch_size,
-                num_agents,
-                self.device,
-                torch.float32,
-            )
-            sigma_ba = sigma_full.view(batch_size, num_agents)
-            x_sigma = torch.randn(batch_size, num_agents, num_steps, 2, device=self.device) * sigma_full
-        else:
-            sigma_value = float(sigma)
-            sigma_ba = torch.full((batch_size, num_agents), sigma_value, device=self.device, dtype=torch.float32)
-            x_sigma = torch.randn(batch_size, num_agents, num_steps, 2, device=self.device) * sigma_value
-        return self.forward_cs_branch(encoder_outputs, x_sigma, sigma_ba)
 
     @torch.no_grad()
     def sample_closed_loop(self, batch, terminal_step: int = -1):
